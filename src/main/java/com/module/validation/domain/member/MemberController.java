@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Controller
@@ -26,7 +27,7 @@ public class MemberController {
     }
 
     @PostMapping("/api/members")
-    public Long save(@RequestBody @Validated MemberRequestDto requestDto) {
+    public Long save(@RequestBody @Valid MemberRequestDto requestDto) {
         return memberService.save(requestDto);
     }
 
