@@ -2,6 +2,7 @@ package com.module.validation.domain.member.dto;
 
 import com.module.validation.domain.member.Member;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberRequestDto {
 
@@ -31,8 +33,8 @@ public class MemberRequestDto {
         return Member.builder()
                 .name(name)
                 .phone1(phone[0])
-                .phone2(phone[2])
-                .phone3(phone[3])
+                .phone2(phone[1])
+                .phone3(phone[2])
                 .email(email)
                 .build();
     }
