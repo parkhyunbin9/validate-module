@@ -1,6 +1,7 @@
 package com.module.validation.domain.member;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.module.validation.domain.exception.CustomExceptionHandler;
 import com.module.validation.domain.member.dto.MemberRequestDto;
 import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.*;
@@ -9,9 +10,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import javax.validation.constraints.AssertTrue;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -47,31 +52,72 @@ class MemberControllerTest {
 
     }
 
-    @DisplayName("post 테스트 - empty name")
+    @DisplayName("post 테스트 - empty or null -> name : 유효하지 않는 이름")
     @Test
-    public void save() throws Exception {
+    public void test_name_save() throws Exception {
         // Given
         String postUrl = "/api/members";
-        String nullUserEmail = "blank@google.com";
-        String blankUserEmail = "null@yahoo.com";
         String blankNameUser = objectMapper.writeValueAsString(new MemberRequestDto(3L, "", "01012341234", "blank@google.com"));
         String nullNameUser = objectMapper.writeValueAsString(new MemberRequestDto(4L, null, "01012341234", "null@yahoo.com"));
 
         // When
-        testPostRequest(postUrl, blankNameUser);
-        testPostRequest(postUrl, nullNameUser);
-
-        // Then
-        Assertions.assertFalse(memberService.findAll().stream().anyMatch(e -> e.getEmail().equals(blankUserEmail)));
-        Assertions.assertFalse(memberService.findAll().stream().anyMatch(e -> e.getEmail().equals(nullUserEmail)));
-    }
-
-    public void testPostRequest(String url, String bodyStr) throws Exception {
-        mock.perform(MockMvcRequestBuilders.post(url)
-                .content(bodyStr)
+        Exception blankNameException = mock.perform(MockMvcRequestBuilders.post(postUrl)
+                .content(blankNameUser)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-        ).andExpect(MockMvcResultMatchers.status().isOk())
-                .andDo(MockMvcResultHandlers.print());
+        ).andReturn().getResolvedException();
+
+        Exception nullNameException = mock.perform(MockMvcRequestBuilders.post(postUrl)
+                .content(nullNameUser)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+        ).andReturn().getResolvedException();
+
+        // Then
+        Assertions.assertEquals(MethodArgumentNotValidException.class, blankNameException.getClass());
+        Assertions.assertEquals(MethodArgumentNotValidException.class, nullNameException.getClass());
+    }
+
+    @DisplayName("post 테스트 - empty or null or format error -> email : 유효하지 않는 메일")
+    @Test
+    public void test_email_save() throws Exception {
+        // Given
+        String postUrl = "/api/members";
+
+        String withoutAtEmail = objectMapper.writeValueAsString(new MemberRequestDto( "test user 1", "01012341234", "blankgoogle.com"));
+        String withoutDotUser = objectMapper.writeValueAsString(new MemberRequestDto( "test user 2", "01012341234", "null@yahoocom"));
+        String multipleAt = objectMapper.writeValueAsString(    new MemberRequestDto( "test user 3", "01012341234", "n@.com@"));
+        String multipleDot = objectMapper.writeValueAsString(   new MemberRequestDto( "test user 4", "01012341234", "n@.com.com"));
+        String numberOnly = objectMapper.writeValueAsString(    new MemberRequestDto( "test user 5", "01012341234", "1231231231"));
+        String withBlack = objectMapper.writeValueAsString(     new MemberRequestDto( "test user 6", "01012341234", "abc @ google.com"));
+        String withNull = objectMapper.writeValueAsString(      new MemberRequestDto( "test user 7", "01012341234", null));
+        String withEmpty = objectMapper.writeValueAsString(     new MemberRequestDto( "test user 8", "01012341234", ""));
+
+        // When
+        Exception withoutAtEmailException = getExceptionFromPostRequest(postUrl, withoutAtEmail);
+        Exception multipleAtEmailException = getExceptionFromPostRequest(postUrl, multipleAt);
+        Exception multipleDotEmailException = getExceptionFromPostRequest(postUrl, multipleDot);
+        Exception numberOnlyEmailException = getExceptionFromPostRequest(postUrl, numberOnly);
+        Exception withBlackEmailException = getExceptionFromPostRequest(postUrl, withBlack);
+        Exception withNullEmailException = getExceptionFromPostRequest(postUrl, withNull);
+        Exception withEmptyEmailException = getExceptionFromPostRequest(postUrl, withEmpty);
+        Exception withoutDotUserEmailException = getExceptionFromPostRequest(postUrl, withoutDotUser);
+        // Then
+        Assertions.assertEquals(MethodArgumentNotValidException.class, withoutAtEmailException.getClass());
+        Assertions.assertEquals(MethodArgumentNotValidException.class, withoutDotUserEmailException.getClass());
+        Assertions.assertEquals(MethodArgumentNotValidException.class, multipleAtEmailException.getClass());
+        Assertions.assertEquals(MethodArgumentNotValidException.class, multipleDotEmailException.getClass());
+        Assertions.assertEquals(MethodArgumentNotValidException.class, numberOnlyEmailException.getClass());
+        Assertions.assertEquals(MethodArgumentNotValidException.class, withBlackEmailException.getClass());
+        Assertions.assertEquals(MethodArgumentNotValidException.class, withNullEmailException.getClass());
+        Assertions.assertEquals(MethodArgumentNotValidException.class, withEmptyEmailException.getClass());
+    }
+
+    public Exception getExceptionFromPostRequest(String url, String body) throws Exception {
+        return mock.perform(MockMvcRequestBuilders.post(url)
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+        ).andReturn().getResolvedException();
     }
 }

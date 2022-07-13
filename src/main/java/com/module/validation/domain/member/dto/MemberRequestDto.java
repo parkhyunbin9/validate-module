@@ -23,7 +23,7 @@ public class MemberRequestDto {
     private String phoneNum;
 
     @NotBlank(message = "메일을 입력해 주세요.")
-    @Email(message = "메일의 포맷을 확인해 주세요.")
+    @Email(message = "메일의 포맷을 확인해 주세요.", regexp = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\\\.[A-Za-z0-9-]+)*(\\\\.[A-Za-z]{2,})$") // .com에서 . 이 없어도 VALID PASS하므로 regexp 추가
     private String email;
 
     public Member toEntity() {
@@ -46,5 +46,9 @@ public class MemberRequestDto {
         return phones;
     }
 
-
+    public MemberRequestDto(String name, String phoneNum, String email) {
+        this.name = name;
+        this.phoneNum = phoneNum;
+        this.email = email;
+    }
 }
