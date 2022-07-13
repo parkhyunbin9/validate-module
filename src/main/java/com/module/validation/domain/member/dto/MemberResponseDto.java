@@ -4,9 +4,11 @@ import com.module.validation.domain.member.Member;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@ToString
 public class MemberResponseDto {
     private Long id;
     private String name;
