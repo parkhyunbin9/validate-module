@@ -1,14 +1,13 @@
 package com.module.validation.domain.member;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.module.validation.domain.member.dto.MemberRequestDto;
 import org.aspectj.lang.annotation.Before;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -23,6 +22,8 @@ class MemberControllerTest {
     MockMvc mock;
     @Autowired
     MemberService memberService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @BeforeAll
     public void before() {
@@ -46,4 +47,31 @@ class MemberControllerTest {
 
     }
 
+    @DisplayName("post 테스트 - empty name")
+    @Test
+    public void save() throws Exception {
+        // Given
+        String postUrl = "/api/members";
+        String nullUserEmail = "blank@google.com";
+        String blankUserEmail = "null@yahoo.com";
+        String blankNameUser = objectMapper.writeValueAsString(new MemberRequestDto(3L, "", "01012341234", "blank@google.com"));
+        String nullNameUser = objectMapper.writeValueAsString(new MemberRequestDto(4L, null, "01012341234", "null@yahoo.com"));
+
+        // When
+        testPostRequest(postUrl, blankNameUser);
+        testPostRequest(postUrl, nullNameUser);
+
+        // Then
+        Assertions.assertFalse(memberService.findAll().stream().anyMatch(e -> e.getEmail().equals(blankUserEmail)));
+        Assertions.assertFalse(memberService.findAll().stream().anyMatch(e -> e.getEmail().equals(nullUserEmail)));
+    }
+
+    public void testPostRequest(String url, String bodyStr) throws Exception {
+        mock.perform(MockMvcRequestBuilders.post(url)
+                .content(bodyStr)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+        ).andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print());
+    }
 }
