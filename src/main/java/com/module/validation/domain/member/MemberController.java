@@ -1,15 +1,12 @@
 package com.module.validation.domain.member;
 
-import com.module.validation.domain.member.MemberService;
 import com.module.validation.domain.member.dto.MemberRequestDto;
 import com.module.validation.domain.member.dto.MemberResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -27,7 +24,7 @@ public class MemberController {
     }
 
     @PostMapping("/api/members")
-    public Long save(@RequestBody @Valid MemberRequestDto requestDto) {
+    public Long save(@RequestBody @Valid  MemberRequestDto requestDto) {
         return memberService.save(requestDto);
     }
 

@@ -6,13 +6,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @ToString
 public class MemberResponseDto {
+
     private Long id;
+
+    @NotEmpty(message = "이름은 비어있을 수 없습니다.")
     private String name;
+
+    @NotEmpty(message = "전화번호는 비어있을 수 없습니다.")
     private String phoneNum;
+
+    @Email
     private String email;
 
     public MemberResponseDto(Member member) {

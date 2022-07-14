@@ -23,7 +23,6 @@ public class CustomExceptionHandler {
 
     private ErrorResponse buildErrorResponse(BindingResult bindingResult, int statusCode) {
         String detail = "";
-
         if (bindingResult.hasErrors()) {
             detail = Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage();
         }

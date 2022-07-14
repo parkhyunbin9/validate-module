@@ -6,7 +6,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 @Getter
-public class ValidCustomException extends RuntimeException{
+public class ValidCustomException extends RuntimeException {
+
     private Error[] errors;
 
     public ValidCustomException(String message, String field) {
