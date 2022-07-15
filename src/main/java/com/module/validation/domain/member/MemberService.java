@@ -36,6 +36,11 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
+    public Member findById(Long id) {
+        return memberRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("잘못된 ID입니다."));
+    }
+
+    @Transactional(readOnly = true)
     public List<MemberResponseDto> findAll() {
         return memberRepository.findAll()
                 .stream()

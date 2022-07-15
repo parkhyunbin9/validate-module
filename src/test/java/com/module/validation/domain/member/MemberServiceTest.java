@@ -1,5 +1,6 @@
 package com.module.validation.domain.member;
 
+import com.module.validation.domain.exception.ErrorResponse;
 import com.module.validation.domain.exception.ValidCustomException;
 import com.module.validation.domain.member.dto.MemberRequestDto;
 import com.module.validation.domain.member.dto.MemberResponseDto;
@@ -37,14 +38,14 @@ class MemberServiceTest {
     @Test
     public void test_memberResponseDto() throws Exception {
         // Given
-        MemberRequestDto requestDto = new MemberRequestDto(0L, "", "01011112222", "test1@naver.com");
-        //Member member = requestDto.toEntity();
-        // When
-        //System.out.println(new MemberResponseDto(member).getId());
-        // Then
-        System.out.println("+++++++++++++++++++++++++++++++++");
-        System.out.println(memberService.findByEmail("te").get().toString());
-        System.out.println("===================================");
+        String testEmail = "test125@naver.com";
+        String worngEmail = testEmail.replace("@", "");
+        MemberRequestDto requestDto = new MemberRequestDto(0L, "", "01011112222", testEmail);
+        Long savedId = memberService.save(requestDto);
+        Member savedMember = memberService.findById(savedId);
+
+        Object response = memberService.findByEmail(worngEmail).get();
+        Assertions.assertInstanceOf(ErrorResponse.class, response);
     }
 
 }
