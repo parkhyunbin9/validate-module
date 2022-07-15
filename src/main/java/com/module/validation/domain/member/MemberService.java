@@ -7,11 +7,10 @@ import com.module.validation.domain.member.dto.MemberResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
+import javax.validation.*;
+import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,11 +19,12 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Validated
 public class MemberService {
 
     private final MemberRepository memberRepository;
 
-    public Long save(MemberRequestDto memberRequestDto) {
+    public Long save(@Valid MemberRequestDto memberRequestDto) {
         checkDuplicateEmail(memberRequestDto.getEmail());
         return memberRepository.save(memberRequestDto.toEntity()).getId();
     }
@@ -49,14 +49,35 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Object> findByEmail(String email) throws Exception {
+    public Optional<Object> findByPhone(@NotEmpty String phone) throws Exception {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
-        MemberRequestDto requestDto = new MemberRequestDto(0L, null, "01011112222", "test1naver.com");
-        Member member = requestDto.toEntity();
+        String phoneNum1 = "";
+        String phoneNum2 = "";
+        String phoneNum3 = "";
+
+        if (phone.length() >= 9) {
+            int mid = phone.length() == 10 ? 7 : 8;
+            phoneNum1 = phone.substring(0, 3);
+            phoneNum2 = phone.substring(4, mid);
+            phoneNum3 = phone.substring(mid, phone.length()-1);
+        }
+
+        Member member = memberRepository.findByPhone1AndPhone2AndPhone3(phoneNum1, phoneNum2, phoneNum3).orElseThrow(() -> new IllegalArgumentException("wrong PhoneNumber"));
         MemberResponseDto memberResponseDto = new MemberResponseDto(member);
+
         Set<ConstraintViolation<MemberResponseDto>> violations = validator.validate(memberResponseDto);
         return (violations.size() <= 0) ? Optional.of(memberResponseDto) : Optional.of(buildResponseError(violations)) ;
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Object> findByEmail(@NotEmpty String email) throws Exception {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("wrong Email"));
+        MemberResponseDto memberResponseDto = new MemberResponseDto(member);
+        Set<ConstraintViolation<MemberResponseDto>> violations = validator.validate(memberResponseDto);
+        return (violations.size() <= 0) ? Optional.of(memberResponseDto) : Optional.of(buildResponseError(violations));
     }
 
     public ErrorResponse buildResponseError(Set<ConstraintViolation<MemberResponseDto>> violations) {

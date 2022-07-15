@@ -1,13 +1,13 @@
 package com.module.validation.domain.member;
 
-import com.module.validation.domain.exception.ErrorResponse;
 import com.module.validation.domain.exception.ValidCustomException;
 import com.module.validation.domain.member.dto.MemberRequestDto;
-import com.module.validation.domain.member.dto.MemberResponseDto;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.validation.ConstraintViolationException;
 
 @SpringBootTest
 @Transactional
@@ -28,24 +28,40 @@ class MemberServiceTest {
     public void test_duplicateEmail() throws Exception {
         // Given
         MemberRequestDto duplicateEmailUser = new MemberRequestDto(2L, "이테스트", "01011112225", "test2@naver.com");
-        // When
 
         // Then
         Assertions.assertThrows(ValidCustomException.class, () -> memberService.save(duplicateEmailUser));
     }
 
-    @DisplayName("serviceLevel 에서  MemberResponseDto valid test")
+    @DisplayName("serviceLevel 에서  MemberResponseDto valid test - 잘못된 이메일 형식/ 비어있는 이메일 //save or find")
     @Test
-    public void test_memberResponseDto() throws Exception {
-        // Given
+    public void test_memberResponseDto_email() throws Exception {
         String testEmail = "test125@naver.com";
-        String worngEmail = testEmail.replace("@", "");
-        MemberRequestDto requestDto = new MemberRequestDto(0L, "", "01011112222", testEmail);
-        Long savedId = memberService.save(requestDto);
-        Member savedMember = memberService.findById(savedId);
+        String wrongEmail = testEmail.replace("@", "");
+        memberService.save(new MemberRequestDto(1L, "이테스트", "01011112222", "hello@firstEmail.com"));
 
-        Object response = memberService.findByEmail(worngEmail).get();
-        Assertions.assertInstanceOf(ErrorResponse.class, response);
+        Assertions.assertThrows(ConstraintViolationException.class, () -> memberService.save(new MemberRequestDto(1L, "이테스트", "01011112222", null)));
+        Assertions.assertThrows(ConstraintViolationException.class, () -> memberService.save(new MemberRequestDto(0L, "이테스트", "01011112222", wrongEmail)));
+        Assertions.assertThrows(ValidCustomException.class, () -> memberService.save(new MemberRequestDto(1L, "테스트리", "01330205032", "hello@firstEmail.com")));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> memberService.findByEmail(wrongEmail).get());
+        Assertions.assertThrows(ConstraintViolationException.class, ()-> memberService.findByEmail(null).get());
+    }
+
+    @DisplayName("serviceLevel 에서  MemberResponseDto valid test - 잘못된 전화번호/ 비어있는 전화번호")
+    @Test
+    public void test_memberResponseDto_phone() throws Exception {
+
+        String testPhoneNum = "01011112222";
+        String shortLengthPhoneNum = (String) testPhoneNum.subSequence(0, 9);
+        String longLengthPhoneNum = testPhoneNum + testPhoneNum;
+
+        Assertions.assertThrows(ConstraintViolationException.class, () -> memberService.save(new MemberRequestDto(1L, "이테스트", null, "test125@naver.com")));
+        Assertions.assertThrows(ConstraintViolationException.class, () -> memberService.save(new MemberRequestDto(0L, "이테스트", longLengthPhoneNum, "test125@naver.com")));
+        Assertions.assertThrows(ConstraintViolationException.class, () -> memberService.save(new MemberRequestDto(0L, "이테스트", shortLengthPhoneNum, "test125@naver.com")));
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> memberService.findByPhone(longLengthPhoneNum).get());
+        Assertions.assertThrows(IllegalArgumentException.class, () -> memberService.findByPhone(shortLengthPhoneNum).get());
+        Assertions.assertThrows(ConstraintViolationException.class, ()-> memberService.findByPhone(null).get());
     }
 
 }
