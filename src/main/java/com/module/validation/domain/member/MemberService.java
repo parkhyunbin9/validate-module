@@ -1,18 +1,20 @@
 package com.module.validation.domain.member;
 
+import com.module.validation.domain.exception.ErrorResponse;
 import com.module.validation.domain.exception.ValidCustomException;
 import com.module.validation.domain.member.dto.MemberRequestDto;
 import com.module.validation.domain.member.dto.MemberResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
-import javax.validation.*;
-import javax.validation.executable.ExecutableValidator;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,31 +44,19 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public  MemberResponseDto findByEmail(String email) throws Exception {
+    public Optional<Object> findByEmail(String email) throws Exception {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
         MemberRequestDto requestDto = new MemberRequestDto(0L, null, "01011112222", "test1naver.com");
         Member member = requestDto.toEntity();
         MemberResponseDto memberResponseDto = new MemberResponseDto(member);
         Set<ConstraintViolation<MemberResponseDto>> violations = validator.validate(memberResponseDto);
-        if(violations.size() > 0) throw new Exception(buildResponseError(violations).messages);
-        return memberResponseDto;
+        return (violations.size() <= 0) ? Optional.of(memberResponseDto) : Optional.of(buildResponseError(violations)) ;
     }
 
-    public ResponseError buildResponseError(Set<ConstraintViolation<MemberResponseDto>> violations) {
+    public ErrorResponse buildResponseError(Set<ConstraintViolation<MemberResponseDto>> violations) {
         List<String> errorMessage = new ArrayList<>();
-        violations.stream().map(violation -> errorMessage.add(violation.getMessage()));
-        return new ResponseError(errorMessage, 400);
+        violations.forEach(violation -> errorMessage.add(violation.getMessage()));
+        return ErrorResponse.of(errorMessage.toString(), 400);
     }
-
-    class ResponseError {
-        private String messages;
-        private int statusCode;
-
-        public ResponseError(List<String> messages, int statusCode) {
-            this.messages = messages.toString();
-            this.statusCode = statusCode;
-        }
-    }
-
 }

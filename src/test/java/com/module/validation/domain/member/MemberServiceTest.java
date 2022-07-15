@@ -42,7 +42,9 @@ class MemberServiceTest {
         // When
         //System.out.println(new MemberResponseDto(member).getId());
         // Then
-        memberService.findByEmail("te");
+        System.out.println("+++++++++++++++++++++++++++++++++");
+        System.out.println(memberService.findByEmail("te").get().toString());
+        System.out.println("===================================");
     }
 
 }
