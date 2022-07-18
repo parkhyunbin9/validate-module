@@ -64,4 +64,20 @@ class MemberServiceTest {
         Assertions.assertThrows(ConstraintViolationException.class, ()-> memberService.findByPhone(null).get());
     }
 
+    @DisplayName("serviceLevel 에서  MemberResponseDto valid test - 잘못된 이름/ 비어있는 이름")
+    @Test
+    public void test_memberResponseDto_name() throws Exception {
+
+        String testName = "김테스트";
+        memberService.save(new MemberRequestDto(3L, "test이테스트test", "01011112222", "test125@naver.com"));
+
+        Assertions.assertThrows(ConstraintViolationException.class, () -> memberService.save(new MemberRequestDto(1L, "", "01011112222", "test125@naver.com")));
+        Assertions.assertThrows(ConstraintViolationException.class, () -> memberService.save(new MemberRequestDto(2L, null, "01011112222", "test125@naver.com")));
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> memberService.findByPhone("test이테스트test").get());
+        Assertions.assertThrows(ConstraintViolationException.class, () -> memberService.findByPhone("").get());
+        Assertions.assertThrows(IllegalArgumentException.class, () -> memberService.findByPhone(" ").get());
+        Assertions.assertThrows(ConstraintViolationException.class, ()-> memberService.findByPhone(null).get());
+    }
+
 }

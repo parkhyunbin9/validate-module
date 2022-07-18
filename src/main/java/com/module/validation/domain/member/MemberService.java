@@ -69,7 +69,15 @@ public class MemberService {
         Set<ConstraintViolation<MemberResponseDto>> violations = validator.validate(memberResponseDto);
         return (violations.size() <= 0) ? Optional.of(memberResponseDto) : Optional.of(buildResponseError(violations)) ;
     }
-
+    @Transactional(readOnly = true)
+    public Optional<Object> findByName(@NotEmpty String name) throws Exception {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+        Member member = memberRepository.findByName(name).orElseThrow(() -> new IllegalArgumentException("wrong Name"));
+        MemberResponseDto memberResponseDto = new MemberResponseDto(member);
+        Set<ConstraintViolation<MemberResponseDto>> violations = validator.validate(memberResponseDto);
+        return (violations.size() <= 0) ? Optional.of(memberResponseDto) : Optional.of(buildResponseError(violations));
+    }
     @Transactional(readOnly = true)
     public Optional<Object> findByEmail(@NotEmpty String email) throws Exception {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
