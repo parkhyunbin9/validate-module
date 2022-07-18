@@ -68,7 +68,6 @@ class MemberServiceTest {
     @Test
     public void test_memberResponseDto_name() throws Exception {
 
-        String testName = "김테스트";
         memberService.save(new MemberRequestDto(3L, "test이테스트test", "01011112222", "test125@naver.com"));
 
         Assertions.assertThrows(ConstraintViolationException.class, () -> memberService.save(new MemberRequestDto(1L, "", "01011112222", "test125@naver.com")));
